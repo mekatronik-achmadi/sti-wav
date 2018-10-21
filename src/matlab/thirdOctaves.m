@@ -27,7 +27,7 @@ function [ freqs ] = thirdOctaves(minFreq, maxFreq)
         while f < maxFreq
             f = f * pow(10,0.1);
             % this array change size every loop. Bad choice !!!
-            freqs(end+1) = f;
+            freqs = [freqs f];
         end
     end
     

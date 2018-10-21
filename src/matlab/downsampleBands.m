@@ -30,7 +30,7 @@ function [ dsAudio,hz ] = downsampleBands(audio, hz_in, downsampleFactor)
     
     for band = audio 
         ds = decimate(band,downsampleFactor,'fir');
-        dsAudio(end+1) = ds;
+        dsAudio = [dsAudio ds];
     end
 
 end

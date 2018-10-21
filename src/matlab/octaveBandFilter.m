@@ -76,9 +76,11 @@ function [ output_args ] = octaveBandFilter( audio, hz, octaveBands,butterOrd, h
         
         filtOut = pow(filtOut,2);
         
-        % b = firwin(int(hammingLength), 25.0, window='hamming', nyq=int(nyquist))
+        b = firwin(int(hammingLength), 25.0, window='hamming', nyq=int(nyquist))
         filtOut = filter(b, 1, filtOut);
         filtOut = filtOut * -1.0;
+        
+        octaveBandAudio = [octaveBandAudio; filtOut];
     end
 
 end
