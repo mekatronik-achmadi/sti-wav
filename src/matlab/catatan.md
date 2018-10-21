@@ -1,17 +1,18 @@
 ## Catatan Pengembangan
 
-Berikut adalah porting seluruh class STI menjadi fungsi-fungsi Matlab.Seluruh kode sumber Matlab sifatnya masih DRAFT dan perlu perbaikan/pengembangan lebih jauh.
+Berikut adalah porting seluruh python-class STI menjadi fungsi-fungsi Matlab.Seluruh kode sumber Matlab sifatnya masih DRAFT dan perlu perbaikan/pengembangan lebih jauh.
 
 ### Hasil Python original
 
 Berikut adalah screenshot running skip python (sebelum porting ke Matlab):
 ![HasilPython](https://raw.githubusercontent.com/mekatronik-achmadi/sti-wav/master/src/matlab/sti_py.png)
 
-### Kendala Porting 
+### Kendala Porting
 Beberapa kendala porting dari Python3 ke Matlab:
 
 * Matlab fokus ke prosedural, sedangkan Python fokus pada objek dan class
 * Matlab sign variabel otomatis, sedangkan Python memperhatikan type
+* Matlab menggunakan for-loop bersifat dasar, sedangkan Python seringkali lebih kompleks
 * Matlab memulai array/vector dari 1, sedangkan Python dari 0 (butuh cek lebih lanjut)
 * Matlab menangani array/vector dengan row,column, sedangkan Python (Numpy) menangani column,row (butuh cek lebih lanjut)
 
@@ -21,7 +22,7 @@ Beberapa kendala porting dari Python3 ke Matlab:
 * Fungsi Utama: stiFromAudio.m
 * Fungsi-Fungsi belum terdefinisi: ./unreferenced/
 
-### Fungsi-Fungsi belum terdefisini 
+### Fungsi-Fungsi belum terdefisini
 Berikut adalah daftar fungsi belum terdefinisi karena belum didapat fungsi yang menggantikan di Matlab beserta fungsi yang memanggilnya:
 
 * my_firwin.m : octaveBandFilter.m
