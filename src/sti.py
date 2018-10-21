@@ -115,7 +115,7 @@ def downsampleBands(audio, hz, downsampleFactor):
     """
 
     ### Achmadi here
-    dsAudio = zeros(0)
+    dsAudio = array([])
 
     # calculate downsampled audio rate in hertz
     downsampleFactor = int(downsampleFactor)        # factor must be integer
@@ -174,7 +174,7 @@ def octaveBandFilter(audio, hz,
     """
 
     ### Achmadi here
-    octaveBandAudio = zeros(0)
+    octaveBandAudio = array([])
 
     print(("Butterworth filter order: %d") % butterOrd)
     print(("Hamming filter length:   %d ms") % hammingTime)
@@ -271,8 +271,8 @@ def octaveBandSpectra(filteredAudioBands, hz, fftRes=0.06):
         Frequencies for FFT points
     """
     ### Achmadi here
-    spectras = zeros(0)
-    fftfreqs = zeros(0)
+    spectras = array([])
+    fftfreqs = array([])
 
     # FFT window size for PSD calculation: 32768 for ~0.06 Hz res at 2 kHz
     psdWindow = fftWindowSize(fftRes, hz)
@@ -329,8 +329,8 @@ def octaveBandCoherence(degrAudioBands, refAudioBands,
         Frequencies for FFT points
     """
     ### Achmadi here
-    coherences = zeros(0)
-    fftfreqs = zeros(0)
+    coherences = array([])
+    fftfreqs = array([])
 
     # FFT window size for PSD calculation: 32768 for ~0.06 Hz res at 2 kHz
     # Beware that 'cohere' isn't as forgiving as 'psd' with FFT lengths
@@ -385,8 +385,8 @@ def thirdOctaveRootSum(spectras, fftfreqs, minFreq=0.25, maxFreq=25.0):
         Square root of spectra sums over 1/3 octave intervals
     """
     ### Achmadi here
-    sums = zeros(0)
-    thirdOctaveSums = zeros(0)
+    sums = array([])
+    thirdOctaveSums = array([])
 
     print("Calculating 1/3 octave square-rooted sums from")
     print(("%d to %d Hz") % (minFreq,maxFreq))
@@ -454,8 +454,8 @@ def thirdOctaveRMS(spectras, fftfreqs, minFreq=0.25, maxFreq=25.0):
     """
 
     ### Achmadi here
-    sums = zeros(0)
-    thirdOctaveRMSValues = zeros(0)
+    sums = array([])
+    thirdOctaveRMSValues = array([])
 
     print("Calculating 1/3 octave RMS values from")
     print(("%d to %d Hz") % (minFreq,maxFreq))
@@ -592,8 +592,8 @@ def stiFromAudio(reference, degraded, hz, calcref=False, downsample=None, name='
         The calculated speech transmission index (STI) value(s)
     """
     ### Achmadi here
-    thirdOctaveTemps = zeros(0)
-    stiValues = zeros(0)
+    thirdOctaveTemps = array([])
+    stiValues = array([])
 
     # put single sample degraded array into another array so the loop works
     if type(degraded) is not type([]):
