@@ -193,7 +193,10 @@ def octaveBandFilter(audio, hz,
         unitStr = "Hz ".rjust(80 - len(statusStr))
         stdout.write(statusStr)
         stdout.write(unitStr)
-        stdout.write('\r')
+        ### Achmadi here
+        # python3 on Linux need both CR and LF
+        # ori: stdout.write('\r')
+        stdout.write('\r\n')
         stdout.flush()
 
         # filter the output at the octave band f
@@ -223,7 +226,11 @@ def octaveBandFilter(audio, hz,
             filtOut = lfilter(b1, a1, audio)
 
         filtOut = array(filtOut)**2
-        b = firwin(hammingLength, 25.0, nyq=nyquist)
+        
+        ### Achmadi here
+        # input need to be non-ngeative integer object
+        # ori: b = firwin(hammingLength, 25.0, window='hamming', nyq=nyquist)
+        b = firwin(int(hammingLength), 25.0, window='hamming', nyq=int(nyquist))
         filtOut = lfilter(b, 1, filtOut)
         filtOut = filtOut * -1.0
 
