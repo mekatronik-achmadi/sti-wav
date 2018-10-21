@@ -1,5 +1,5 @@
-function [ thirdOctaveSums ] = thirdOctaveRootSum(spectras, fftfreqs, minFreq, maxFreq)
-% Calculates square root of sum of spectra over 1/3 octave bands
+function [ thirdOctaveRMSValues ] =thirdOctaveRMS(spectras, fftfreqs, minFreq=, maxFreq=)
+% Calculates RMS value of spectra over 1/3 octave bands
 % 
 % Input
 % -----
@@ -21,9 +21,9 @@ function [ thirdOctaveSums ] = thirdOctaveRootSum(spectras, fftfreqs, minFreq, m
 % 
 % Output
 % ------
-% * thirdOctaveRootSums : ndarray
+% * thirdOctaveRMSValues : ndarray
 % 
-%     Square root of spectra sums over 1/3 octave intervals
+%     RMS value of spectra over 1/3 octave intervals
     if isempty(minFreq)
         minFreq=0.25;
     end
@@ -32,11 +32,11 @@ function [ thirdOctaveSums ] = thirdOctaveRootSum(spectras, fftfreqs, minFreq, m
         minFreq=25.0;
     end
 
-    fprintf('Calculating 1/3 octave square-rooted sums from \n');
+    fprintf('Calculating 1/3 octave RMS values from \n');
     fprintf('%d to %d Hz',minFreq,maxFreq);
     
     thirdOctaveBands = thirdOctaves(minFreq, maxFreq);
-        
+    
     for spectra = spectras
         freqs = fftfreqs(find(spectras==spectra));
         
@@ -49,14 +49,15 @@ function [ thirdOctaveSums ] = thirdOctaveRootSum(spectras, fftfreqs, minFreq, m
             ui = my_searchsorted(freqs, f132) + 1;
             
             s = sum(spectra(li:ui));
+            s = s / len(spectra(li:ui));
             s = sqrt(s);
             
             sums = [sums s];
             
         end
-        
-        thirdOctaveSums = [thirdOctaveSums; sums];
+                
+        thirdOctaveRMSValues = [thirdOctaveRMSValues; sums];
     end
-        
+    
 end
 
