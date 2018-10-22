@@ -27,10 +27,11 @@ def testSTI():
     # test result
     if abs(stis - 0.63) < 0.002:
         print("OK")
-        return 0
     else:
         print("FAILED")
-        return 1
+        
+    return stis
+
 
 if __name__ == '__main__':
-    testSTI()
+    v_sti = testSTI()
