@@ -33,15 +33,20 @@ def testSTI():
         pfwav = "%s/%s" % (path,fwav)
         pfwavref = "%s/%s" % (path,fwavref)
         
-        print("processing %s vs %s \n" % (pfwav,pfwavref))
+        print("processing %s vs %s \n\n" % (fwav,fwavref))
         
-        degrAudio, degrRate = readwav(pfwav)
-        refAudio, refRate = readwav(pfwavref)
+        degrAudio, degrRate, readstt = readwav(pfwav)
+        refAudio, refRate, readrefstt = readwav(pfwavref)
         
-        v_sti = stiFromAudio(refAudio, degrAudio, refRate, name=fwav, fftCohRes=0.488)
+        if readstt==0 and readrefstt==0:
+            v_sti = stiFromAudio(refAudio, degrAudio, refRate, name=fwav, fftCohRes=0.976)
         
-        with open(fresult, 'a') as txtfile:
-            txtfile.write("%i, %s, %s, %.2f \n" % (num,fwav,fwavref,v_sti))
+            with open(fresult, 'a') as txtfile:
+                txtfile.write("%i, %s, %s, %.2f \n" % (num,fwav,fwavref,v_sti))
+                
+        else:
+            with open(fresult, 'a') as txtfile:
+                txtfile.write("%i, %s, %s, error \n" % (num,fwav,fwavref))
         
 if __name__ == '__main__':
     testSTI()

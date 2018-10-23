@@ -702,12 +702,18 @@ def readwav(path):
 
         Audio sample rate in hertz
     """
-    wav = wavfile.read(path)
-
+    try:
+        wav = wavfile.read(path)
+        
+    except:        
+        print("error read wav file %s \n\n" % path)
+        return 0, 0, 1
+        
+    status = 0
     rate = wav[0]
     audio = array(wav[1])
 
     scale = float(max(audio))
     audio = audio / scale
 
-    return audio, rate
+    return audio, rate, status
