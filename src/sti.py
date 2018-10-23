@@ -242,7 +242,7 @@ def octaveBandFilter(audio, hz,
 
     return octaveBandAudio
 
-def octaveBandSpectra(filteredAudioBands, hz, fftRes=0.06):
+def octaveBandSpectra(filteredAudioBands, hz, fftResSpec=0.06):
     """
     Calculate octave band power spectras
 
@@ -275,7 +275,7 @@ def octaveBandSpectra(filteredAudioBands, hz, fftRes=0.06):
     fftfreqs = array([])
 
     # FFT window size for PSD calculation: 32768 for ~0.06 Hz res at 2 kHz
-    psdWindow = fftWindowSize(fftRes, hz)
+    psdWindow = fftWindowSize(fftResSpec, hz)
 
     print("Calculating octave band power spectras")
     print(("(FFT length: %.2f samples)") % psdWindow)
@@ -296,7 +296,7 @@ def octaveBandSpectra(filteredAudioBands, hz, fftRes=0.06):
     return spectras, fftfreqs
 
 def octaveBandCoherence(degrAudioBands, refAudioBands,
-                        hz, fftRes=0.122):
+                        hz, fftResCoh=0.122):
     """
     Calculate coherence between clean and degraded octave band audio
 
@@ -335,7 +335,7 @@ def octaveBandCoherence(degrAudioBands, refAudioBands,
     # FFT window size for PSD calculation: 32768 for ~0.06 Hz res at 2 kHz
     # Beware that 'cohere' isn't as forgiving as 'psd' with FFT lengths
     # larger than half the length of the signal
-    psdWindow = fftWindowSize(fftRes, hz)
+    psdWindow = fftWindowSize(fftResCoh, hz)
 
     print("Calculating degraded and reference audio coherence")
     print(("(FFT length: %.2f samples)") % psdWindow)
@@ -552,7 +552,7 @@ def sti(modulations, coherences, minCoherence=0.8):
     print(("Speech Transmission Index (STI): %.2f") % index)
     return index
 
-def stiFromAudio(reference, degraded, hz, calcref=False, downsample=None, name='unnamed'):
+def stiFromAudio(reference, degraded, hz, calcref=False, downsample=None, name='unnamed', fftCohRes=0.122, fftSpecRes=0.06):
     """
     Calculate the speech transmission index (STI) from clean and dirty
     (ie: distorted) audio samples. The clean and dirty audio samples must have
@@ -625,9 +625,9 @@ def stiFromAudio(reference, degraded, hz, calcref=False, downsample=None, name='
     # calculate STI for reference sample, if boolean set
     if calcref:
         # STI calc procedure
-        spectras, sfreqs = octaveBandSpectra(refOctaveBands, refRate)
-        coherences, cfreqs = octaveBandCoherence(refOctaveBands, refOctaveBands,
-                                                 refRate)
+        spectras, sfreqs = octaveBandSpectra(refOctaveBands, refRate, fftSpecRes)
+        coherences, cfreqs = octaveBandCoherence(refOctaveBands,refOctaveBands,
+                                                 refRate, fftCohRes)
         thirdOctaveMTF = thirdOctaveRootSum(spectras, sfreqs)
         thirdOctaveCoherences = thirdOctaveRMS(coherences, cfreqs)
 
@@ -651,9 +651,9 @@ def stiFromAudio(reference, degraded, hz, calcref=False, downsample=None, name='
                                                         degrRate, downsample)
 
         # STI calc procedure
-        spectras, sfreqs = octaveBandSpectra(degrOctaveBands, degrRate)
+        spectras, sfreqs = octaveBandSpectra(degrOctaveBands, degrRate, fftSpecRes)
         coherences, cfreqs = octaveBandCoherence(refOctaveBands,
-                                                 degrOctaveBands, refRate)
+                                                 degrOctaveBands, refRate, fftCohRes)
         thirdOctaveMTF = thirdOctaveRootSum(spectras, sfreqs)
         thirdOctaveCoherences = thirdOctaveRMS(coherences, cfreqs)
 
