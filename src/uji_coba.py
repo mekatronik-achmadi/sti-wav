@@ -46,7 +46,7 @@ def testSTI():
                 
         else:
             with open(fresult, 'a') as txtfile:
-                txtfile.write("%i, %s, %s, error \n" % (num,fwav,fwavref))
+                txtfile.write("%i, %s, %s, error-wav \n" % (num,fwav,fwavref))
         
 if __name__ == '__main__':
     testSTI()
