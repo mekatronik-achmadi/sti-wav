@@ -6,13 +6,15 @@ Created on Sun Oct 21 20:48:08 2018
 @author: achmadi
 """
 
-from sti import readwav
+from sti import classSTI
 import matplotlib.pyplot as plt
 
 def plotSTI():
+    csti = classSTI()
+    
     # read audio
-    refAudio, refRate = readwav('speech/eval1.wav')
-    degrAudio, degrRate = readwav('speech/eval1_echo100.wav')
+    refAudio, refRate, readstt = csti.readwav('speech/eval1.wav')
+    degrAudio, degrRate, readstt = csti.readwav('speech/eval1_echo100.wav')
     
     plt.figure(0)
     plt.subplot(211)

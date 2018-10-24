@@ -10,9 +10,11 @@ import os
 import fnmatch
 
 
-from sti import stiFromAudio, readwav
+from sti import classSTI
 
 def testSTI():
+    
+    csti = classSTI()
 
     path = "UntukSTI_54"
     fresult = "result_%s.csv" % path
@@ -35,11 +37,11 @@ def testSTI():
         
         print("processing %s vs %s \n\n" % (fwav,fwavref))
         
-        degrAudio, degrRate, readstt = readwav(pfwav)
-        refAudio, refRate, readrefstt = readwav(pfwavref)
+        degrAudio, degrRate, readstt = csti.readwav(pfwav)
+        refAudio, refRate, readrefstt = csti.readwav(pfwavref)
         
         if readstt==0 and readrefstt==0:
-            v_sti = stiFromAudio(refAudio, degrAudio, refRate, name=fwav, fftCohRes=0.976)
+            v_sti = csti.stiFromAudio(refAudio, degrAudio, refRate, name=fwav, fftCohRes=0.976)
         
             with open(fresult, 'a') as txtfile:
                 txtfile.write("%i, %s, %s, %.2f \n" % (num,fwav,fwavref,v_sti))
