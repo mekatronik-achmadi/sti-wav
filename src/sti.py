@@ -10,7 +10,7 @@ Licensed under the GNU General Public License
 import matplotlib.mlab as matmlab
 import numpy as np
 import numpy.ma as npma
-import scipy.io as scyio
+import scipy.io.wavfile as scywav
 import scipy.signal as scysig
 import sys
 import warnings as warns
@@ -706,7 +706,7 @@ class classSTI:
 			Audio sample rate in hertz
 		"""
 		try:
-			wav = scyio.wavfile.read(path)
+			wav = scywav.read(path)
 			
 		except:        
 			print("error read wav file %s \n\n" % path)

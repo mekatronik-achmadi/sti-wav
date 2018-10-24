@@ -9,7 +9,6 @@ Created on Tue Oct 23 19:50:08 2018
 import os
 import fnmatch
 
-
 from sti import classSTI
 
 def testSTI():
