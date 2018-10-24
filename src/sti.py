@@ -7,15 +7,13 @@ Copyright (C) 2011 Jon Polom <jmpolom@wayne.edu>
 Licensed under the GNU General Public License
 """
 
-from datetime import date, datetime
-from matplotlib.mlab import cohere,psd
-from numpy import append,array,clip,log10,nonzero,ones,power,reshape
-from numpy import searchsorted,shape,sqrt,sum,vstack,zeros
-from numpy.ma import masked_array
-from scipy.io import wavfile
-from scipy.signal import butter,firwin,decimate,lfilter
-from sys import stdout
-from warnings import catch_warnings,simplefilter
+import matplotlib.mlab as matmlab
+import numpy as np
+import numpy.ma as npma
+import scipy.io as scyio
+import scipy.signal as scysig
+import sys
+import warnings as warns
 
 #__author__ = "Jonathan Polom <jmpolom@wayne.edu>"
 #__date__ = date(2011, 04, 22)
@@ -47,11 +45,11 @@ def thirdOctaves(minFreq, maxFreq):
         maxFreq = float(maxFreq)
 
         f = float(minFreq)
-        freqs = array([f])
+        freqs = np.array([f])
 
         while f < maxFreq:
             f = f * 10**0.1
-            freqs = append(freqs, f)
+            freqs = np.append(freqs, f)
 
         return freqs
 
@@ -115,17 +113,17 @@ def downsampleBands(audio, hz, downsampleFactor):
     """
 
     ### Achmadi here
-    dsAudio = array([])
+    dsAudio = np.array([])
 
     # calculate downsampled audio rate in hertz
     downsampleFactor = int(downsampleFactor)        # factor must be integer
     hz = int(hz / downsampleFactor)
 
     for band in audio:
-        ds = decimate(band, downsampleFactor, ftype='fir')
+        ds = scysig.decimate(band, downsampleFactor, ftype='fir')
 
         try:
-            dsAudio = append(dsAudio, ds)
+            dsAudio = np.append(dsAudio, ds)
         except:
             dsAudio = ds
 
@@ -174,7 +172,7 @@ def octaveBandFilter(audio, hz,
     """
 
     ### Achmadi here
-    octaveBandAudio = array([])
+    octaveBandAudio = np.array([])
 
     print(("Butterworth filter order: %.2f") % butterOrd)
     print(("Hamming filter length:   %.2f ms") % hammingTime)
@@ -191,17 +189,17 @@ def octaveBandFilter(audio, hz,
         bands = str(octaveBands[:octaveBands.index(f) + 1]).strip('[]')
         statusStr = "Octave band filtering audio at: " + bands
         unitStr = "Hz ".rjust(80 - len(statusStr))
-        stdout.write(statusStr)
-        stdout.write(unitStr)
+        sys.stdout.write(statusStr)
+        sys.stdout.write(unitStr)
         ### Achmadi here
         # python3 on Linux need both CR and LF
         # ori: stdout.write('\r')
-        stdout.write('\r\n')
-        stdout.flush()
+        sys.stdout.write('\r\n')
+        sys.stdout.flush()
 
         # filter the output at the octave band f
-        f1 = f / sqrt(2)
-        f2 = f * sqrt(2)
+        f1 = f / np.sqrt(2)
+        f2 = f * np.sqrt(2)
 
         # for some odd reason the band-pass butterworth doesn't work right
         # when the filter order is high (above 3). likely a SciPy issue?
@@ -212,31 +210,32 @@ def octaveBandFilter(audio, hz,
         # their limitations but I think this is odd.
         # the issue described here will be sent to their mailing list
         if f < max(octaveBands):
-            with catch_warnings():      # suppress the spurious warnings given
-                simplefilter('ignore')  # under certain conditions
-                b1,a1 = butter(butterOrd, f1/nyquist, btype='high')
-                b2,a2 = butter(butterOrd, f2/nyquist, btype='low')
+            with warns.catch_warnings():      # suppress the spurious warnings given
+                warns.simplefilter('ignore')  # under certain conditions
+                b1,a1 = scysig.butter(butterOrd, f1/nyquist, btype='high')
+                b2,a2 = scysig.butter(butterOrd, f2/nyquist, btype='low')
 
-            filtOut = lfilter(b1, a1, audio)   # high-pass raw audio at f1
-            filtOut = lfilter(b2, a2, filtOut) # low-pass after high-pass at f1
+            filtOut = scysig.lfilter(b1, a1, audio)   # high-pass raw audio at f1
+            filtOut = scysig.lfilter(b2, a2, filtOut) # low-pass after high-pass at f1
         else:
-            with catch_warnings():
-                simplefilter('ignore')
-                b1,a1 = butter(butterOrd, f/nyquist, btype='high')
-            filtOut = lfilter(b1, a1, audio)
+            with warns.catch_warnings():
+                warns.simplefilter('ignore')
+                b1,a1 = scysig.butter(butterOrd, f/nyquist, btype='high')
+            filtOut = scysig.lfilter(b1, a1, audio)
 
-        filtOut = array(filtOut)**2
+        filtOut = np.array(filtOut)**2
         
         ### Achmadi here
         # input need to be non-ngeative integer object
-        # ori: b = firwin(hammingLength, 25.0, window='hamming', nyq=nyquist)
-        b = firwin(int(hammingLength), 25.0, window='hamming', nyq=int(nyquist))
-        filtOut = lfilter(b, 1, filtOut)
+        # ori: b = scysig.firwin(hammingLength, 25.0, window='hamming', nyq=nyquist)
+        
+        b = scysig.firwin(int(hammingLength), 25.0, window='hamming', nyq=int(nyquist))
+        filtOut = scysig.lfilter(b, 1, filtOut)
         filtOut = filtOut * -1.0
 
         # stack-up octave band filtered audio
         try:
-            octaveBandAudio = vstack((octaveBandAudio, filtOut))
+            octaveBandAudio = np.vstack((octaveBandAudio, filtOut))
         except:
             octaveBandAudio = filtOut
 
@@ -271,8 +270,8 @@ def octaveBandSpectra(filteredAudioBands, hz, fftResSpec=0.06):
         Frequencies for FFT points
     """
     ### Achmadi here
-    spectras = array([])
-    fftfreqs = array([])
+    spectras = np.array([])
+    fftfreqs = np.array([])
 
     # FFT window size for PSD calculation: 32768 for ~0.06 Hz res at 2 kHz
     psdWindow = fftWindowSize(fftResSpec, hz)
@@ -281,14 +280,14 @@ def octaveBandSpectra(filteredAudioBands, hz, fftResSpec=0.06):
     print(("(FFT length: %.2f samples)") % psdWindow)
 
     for band in filteredAudioBands:
-        spectra, freqs = psd(band, NFFT=psdWindow, Fs=hz)
-        spectra = reshape(spectra, len(freqs))  # change to row vector
+        spectra, freqs = matmlab.psd(band, NFFT=psdWindow, Fs=hz)
+        spectra = np.reshape(spectra, len(freqs))  # change to row vector
         spectra = spectra / max(spectra)        # scale to [0,1]
 
         # stack-up octave band spectras
         try:
-            spectras = vstack((spectras, spectra))
-            fftfreqs = vstack((fftfreqs, freqs))
+            spectras = np.vstack((spectras, spectra))
+            fftfreqs = np.vstack((fftfreqs, freqs))
         except:
             spectras = spectra
             fftfreqs = freqs
@@ -329,8 +328,8 @@ def octaveBandCoherence(degrAudioBands, refAudioBands,
         Frequencies for FFT points
     """
     ### Achmadi here
-    coherences = array([])
-    fftfreqs = array([])
+    coherences = np.array([])
+    fftfreqs = np.array([])
 
     # FFT window size for PSD calculation: 32768 for ~0.06 Hz res at 2 kHz
     # Beware that 'cohere' isn't as forgiving as 'psd' with FFT lengths
@@ -341,15 +340,15 @@ def octaveBandCoherence(degrAudioBands, refAudioBands,
     print(("(FFT length: %.2f samples)") % psdWindow)
 
     for i,band in enumerate(degrAudioBands):
-        with catch_warnings():      # catch and ignore spurious warnings
-            simplefilter('ignore')  # due to some irrelevant divide by 0's
-            coherence, freqs = cohere(band, refAudioBands[i],
+        with warns.catch_warnings():      # catch and ignore spurious warnings
+            warns.simplefilter('ignore')  # due to some irrelevant divide by 0's
+            coherence, freqs = matmlab.cohere(band, refAudioBands[i],
                                       NFFT=psdWindow, Fs=hz)
 
         # stack-up octave band spectras
         try:
-            coherences = vstack((coherences, coherence))
-            fftfreqs = vstack((fftfreqs, freqs))
+            coherences = np.vstack((coherences, coherence))
+            fftfreqs = np.vstack((fftfreqs, freqs))
         except:
             coherences = coherence
             fftfreqs = freqs
@@ -385,8 +384,8 @@ def thirdOctaveRootSum(spectras, fftfreqs, minFreq=0.25, maxFreq=25.0):
         Square root of spectra sums over 1/3 octave intervals
     """
     ### Achmadi here
-    sums = array([])
-    thirdOctaveSums = array([])
+    sums = np.array([])
+    thirdOctaveSums = np.array([])
 
     print("Calculating 1/3 octave square-rooted sums from")
     print(("%.2f to %.2f Hz") % (minFreq,maxFreq))
@@ -399,23 +398,23 @@ def thirdOctaveRootSum(spectras, fftfreqs, minFreq=0.25, maxFreq=25.0):
 
         # calculate the third octave sums
         for f13 in thirdOctaveBands:
-            f131 = f13 / power(2, 1.0/6.0) # band start
-            f132 = f13 * power(2, 1.0/6.0) # band end
+            f131 = f13 / np.power(2, 1.0/6.0) # band start
+            f132 = f13 * np.power(2, 1.0/6.0) # band end
 
-            li = searchsorted(freqs, f131)
-            ui = searchsorted(freqs, f132) + 1
+            li = np.searchsorted(freqs, f131)
+            ui = np.searchsorted(freqs, f132) + 1
 
-            s = sum(spectra[li:ui]) # sum the spectral components in band
-            s = sqrt(s)             # take square root of summed components
+            s = np.sum(spectra[li:ui]) # sum the spectral components in band
+            s = np.sqrt(s)             # take square root of summed components
 
             try:
-                sums = append(sums, s)
+                sums = np.append(sums, s)
             except:
-                sums = array([s])
+                sums = np.array([s])
 
         # stack-up third octave modulation transfer functions
         try:
-            thirdOctaveSums = vstack((thirdOctaveSums, sums))
+            thirdOctaveSums = np.vstack((thirdOctaveSums, sums))
         except:
             thirdOctaveSums = sums
 
@@ -454,8 +453,8 @@ def thirdOctaveRMS(spectras, fftfreqs, minFreq=0.25, maxFreq=25.0):
     """
 
     ### Achmadi here
-    sums = array([])
-    thirdOctaveRMSValues = array([])
+    sums = np.array([])
+    thirdOctaveRMSValues = np.array([])
 
     print("Calculating 1/3 octave RMS values from")
     print(("%.2f to %.2f Hz") % (minFreq,maxFreq))
@@ -468,24 +467,24 @@ def thirdOctaveRMS(spectras, fftfreqs, minFreq=0.25, maxFreq=25.0):
 
         # calculate the third octave sums
         for f13 in thirdOctaveBands:
-            f131 = f13 / power(2, 1.0/6.0) # band start
-            f132 = f13 * power(2, 1.0/6.0) # band end
+            f131 = f13 / np.power(2, 1.0/6.0) # band start
+            f132 = f13 * np.power(2, 1.0/6.0) # band end
 
-            li = searchsorted(freqs, f131)
-            ui = searchsorted(freqs, f132) + 1
+            li = np.searchsorted(freqs, f131)
+            ui = np.searchsorted(freqs, f132) + 1
 
-            s = sum(spectra[li:ui]**2)  # sum the spectral components in band
+            s = np.sum(spectra[li:ui]**2)  # sum the spectral components in band
             s = s / len(spectra[li:ui]) # divide by length of sum
-            s = sqrt(s)                 # square root
+            s = np.sqrt(s)                 # square root
 
             try:
-                sums = append(sums, s)
+                sums = np.append(sums, s)
             except:
-                sums = array([s])
+                sums = np.array([s])
 
         # stack-up third octave modulation transfer functions
         try:
-            thirdOctaveRMSValues = vstack((thirdOctaveRMSValues, sums))
+            thirdOctaveRMSValues = np.vstack((thirdOctaveRMSValues, sums))
         except:
             thirdOctaveRMSValues = sums
 
@@ -522,20 +521,20 @@ def sti(modulations, coherences, minCoherence=0.8):
     """
 
     # create masking array of zeroes
-    snrMask = zeros(modulations.shape, dtype=int)
+    snrMask = np.zeros(modulations.shape, dtype=int)
 
     # sort through coherence array and mask corresponding SNRs where coherence
     # values fall below 'minCoherence' (0.8 in most cases and by default)
     for i,band in enumerate(coherences):
-        lessThanMin = nonzero(band < minCoherence)[0]
+        lessThanMin = np.nonzero(band < minCoherence)[0]
         if len(lessThanMin) >= 1:
             discardAfter = min(lessThanMin)
-            snrMask[i][discardAfter:] = ones((len(snrMask[i][discardAfter:])))
+            snrMask[i][discardAfter:] = np.ones((len(snrMask[i][discardAfter:])))
 
-    modulations = clip(modulations, 0, 0.99)      # clip to [0, 0.99] (max: ~1)
-    snr = 10*log10(modulations/(1 - modulations)) # estimate SNR
-    snr = clip(snr, -15, 15)                      # clip to [-15,15]
-    snr = masked_array(snr, mask=snrMask)         # exclude values from sum
+    modulations = np.clip(modulations, 0, 0.99)      # clip to [0, 0.99] (max: ~1)
+    snr = 10*np.log10(modulations/(1 - modulations)) # estimate SNR
+    snr = np.clip(snr, -15, 15)                      # clip to [-15,15]
+    snr = npma.masked_array(snr, mask=snrMask)         # exclude values from sum
     snrCounts = (snr / snr).sum(axis=1)           # count SNRs
     snrCounts = snrCounts.data                    # remove masking
     octaveBandSNR = snr.sum(axis=1) / snrCounts   # calc average SNR
@@ -592,8 +591,8 @@ def stiFromAudio(reference, degraded, hz, calcref=False, downsample=None, name='
         The calculated speech transmission index (STI) value(s)
     """
     ### Achmadi here
-    thirdOctaveTemps = array([])
-    stiValues = array([])
+    thirdOctaveTemps = np.array([])
+    stiValues = np.array([])
 
     # put single sample degraded array into another array so the loop works
     if type(degraded) is not type([]):
@@ -605,7 +604,6 @@ def stiFromAudio(reference, degraded, hz, calcref=False, downsample=None, name='
     print ("")
     print (("Sample set:             %s") % name)
     print (("Number of samples:      %.2f") % len(degraded))
-    print (("Date/time:              %s") % datetime.now().isoformat())
     print ("Calculate reference STI:")
     if calcref:
         print ("yes")
@@ -703,7 +701,7 @@ def readwav(path):
         Audio sample rate in hertz
     """
     try:
-        wav = wavfile.read(path)
+        wav = scyio.wavfile.read(path)
         
     except:        
         print("error read wav file %s \n\n" % path)
@@ -711,7 +709,7 @@ def readwav(path):
         
     status = 0
     rate = wav[0]
-    audio = array(wav[1])
+    audio = np.array(wav[1])
 
     scale = float(max(audio))
     audio = audio / scale

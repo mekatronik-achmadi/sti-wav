@@ -7,7 +7,6 @@ Copyright (C) 2011 Jon Polom <jmpolom@wayne.edu>
 Licensed under the GNU General Public License
 """
 
-#from datetime import date
 from sti import stiFromAudio, readwav
 
 #__author__ = "Jonathan Polom <jmpolom@wayne.edu>"
@@ -16,8 +15,8 @@ from sti import stiFromAudio, readwav
 
 def testSTI():
     # read audio
-    refAudio, refRate = readwav('speech/eval1.wav')
-    degrAudio, degrRate = readwav('speech/eval1_echo100.wav')
+    refAudio, refRate, readstatus = readwav('speech/eval1.wav')
+    degrAudio, degrRate, readstatus = readwav('speech/eval1_echo100.wav')
 
     # calculate the STI. Visually verify console output.
     stis = stiFromAudio(refAudio, degrAudio, refRate, name='eval1.wav')
