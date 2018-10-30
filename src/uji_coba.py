@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Oct 23 19:50:08 2018
-
-@author: achmadi
+"""!
+@author achmadi
 """
 
 import os
@@ -12,6 +10,9 @@ import fnmatch
 from sti import classSTI
 
 def testSTI():
+	"""!
+	@brief main function to batch analyze multiple files using @b classSTI object
+	"""
     
     csti = classSTI()
 
@@ -48,8 +49,11 @@ def testSTI():
         else:
             with open(fresult, 'a') as txtfile:
                 txtfile.write("%i, %s, %s, error-wav \n" % (num,fwav,fwavref))
-        
+    
 if __name__ == '__main__':
+	"""!
+	@brief main script to run
+	"""
     testSTI()
         
    

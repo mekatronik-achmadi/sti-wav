@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Sun Oct 21 20:48:08 2018
-
-@author: achmadi
+"""!
+@author achmadi
 """
 
 from sti import classSTI
 import matplotlib.pyplot as plt
 
 def plotSTI():
+	"""!
+	@brief main function to plot wav (degraded vs references) 
+	"""
     csti = classSTI()
     
     # read audio
@@ -25,7 +26,10 @@ def plotSTI():
     plt.plot(degrAudio)
     
     plt.show()
-   
+
 if __name__ == '__main__':
+	"""!
+	@brief main script to run
+	"""
     plotSTI()
     

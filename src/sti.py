@@ -1,10 +1,13 @@
 #!/usr/bin/python
 
-"""
+"""!
 Speech Transmission Index (STI) from speech waveforms (real speech)
 
 Copyright (C) 2011 Jon Polom <jmpolom@wayne.edu>
 Licensed under the GNU General Public License
+
+@author Jonathan Polom <jmpolom@wayne.edu>
+@version 0.5
 """
 
 import matplotlib.mlab as matmlab
@@ -13,35 +16,32 @@ import numpy.ma as npma
 import scipy.io.wavfile as scywav
 import scipy.signal as scysig
 import sys
+import datetime as dt
 import warnings as warns
 
-#__author__ = "Jonathan Polom <jmpolom@wayne.edu>"
-#__date__ = date(2011, 04, 22)
-#__version__ = "0.5"
+__author__ = "Jonathan Polom <jmpolom@wayne.edu>"
+__version__ = "0.5"
 
 class classSTI:
+	"""!
+	@brief Speech Transmission Index (STI) class references
+	"""
 	
 	def __init__(self):
+		"""!
+		@brief Construct class object
+		"""
 		pass
 
 	def thirdOctaves(self, minFreq, maxFreq):
-		"""
-		Calculates a list of frequencies spaced 1/3 octave apart in hertz
-		between minFreq and maxFreq
-
-		Input
-		-----
-		* minFreq : float or int
-
-			Must be non-zero and non-negative
-
-		* maxFreq : float or int
-
-			Must be non-zero and non-negative
-
-		Output
-		------
-		* freqs : ndarray
+		"""!
+		@brief Calculates a list of frequencies spaced 1/3 octave apart in hertz between minFreq and maxFreq
+		
+		@param[in] minFreq [float or int]
+		@param[in] maxFreq [float or int]
+		@note both frequency must be non-zero and non-negative
+		
+		@param[out] freqs [ndarray]
 		"""
 
 		if minFreq <= 0 or maxFreq <= 0:
@@ -59,23 +59,13 @@ class classSTI:
 			return freqs
 
 	def fftWindowSize(self, freqRes, hz):
-		"""
-		Calculate power of 2 window length for FFT to achieve specified frequency
-		resolution. Useful for power spectra and coherence calculations.
+		"""!
+		@brief Calculate power of 2 window length for FFT to achieve specified frequency resolution. Useful for power spectra and coherence calculations.
 
-		Input
-		-----
-		* freqRes : float
+		@param[in] freqRes [float] Desired frequency resolution in hertz
+		@param[in] hz [int] Sample rate, in hertz, of signal undergoing FFT
 
-			Desired frequency resolution in hertz
-
-		* hz : int
-
-			Sample rate, in hertz, of signal undergoing FFT
-
-		Output
-		------
-		* window : int
+		@param[out] window [int] Size of window 
 		"""
 
 		freqRes = float(freqRes)         # make sure frequency res is a float
@@ -89,32 +79,16 @@ class classSTI:
 		return 2**pwr
 
 	def downsampleBands(self, audio, hz, downsampleFactor):
-		"""
-		Downsample audio by integer factor
+		"""!
+		@brief Downsample audio by integer factor
 
-		Input
-		-----
-		* audio : array-like
+		@param[in] audio [array-like] Array of original audio samples
+		@param[in] hz [float or int] Original audio sample rate in hertz
+		@param[in] downsampleFactor [int] Factor to downsample audio by, if desired
 
-			Array of original audio samples
-
-		* hz : float or int
-
-			Original audio sample rate in hertz
-
-		* downsampleFactor : int
-
-			Factor to downsample audio by, if desired
-
-		Output
-		------
-		* dsAudio : ndarray
-
-			Downsampled audio array
-
-		* hz : int
-
-			Downsampled audio sample rate in hertz
+		@param[out] dsAudio [ndarray] Downsampled audio array
+		@param[out] hz [int] Downsampled audio sample rate in hertz
+		
 		"""
 
 		### Achmadi here
@@ -138,42 +112,21 @@ class classSTI:
 						 octaveBands=[125, 250, 500, 1000, 2000, 4000, 8000],
 						 butterOrd=6, hammingTime=16.6):
 
-		"""
-		Octave band filter raw audio. The audio is filtered through butterworth
-		filters of order 6 (by default), squared to obtain the envelope and finally
-		low-pass filtered using a 'hammingTime' length Hamming filter at 25 Hz.
+		"""!
+		@brief Octave band filter raw audio. The audio is filtered through butterworth	filters of order 6 (by default), squared to obtain the envelope and finally	low-pass filtered using a 'hammingTime' length Hamming filter at 25 Hz.
 
-		Input
-		-----
-		* audio : array-like
+		@param[in] audio [array-like] Array of raw audio samples
+		@param[in] hz [float or int]	Audio sample rate in hertz
+		@param[in] octaveBands [array-like] List or array of octave band center frequencies
+		@param[in] butterOrd [int] Butterworth filter order.
+		@param[in] hammingTime [float or int] Hamming window length, in milliseconds relative to audio sample rate
+		@note default @b octaveBands is [125, 250, 500, 1000, 2000, 4000, 8000]
+		@note default @b butterOrd is 6
+		@note default @b hammingTime is 16.6
 
-			Array of raw audio samples
+		@param[out] octaveBandAudio [ndarray] Octave band filtered audio
 
-		* hz : float or int
-
-			Audio sample rate in hertz
-
-		* octaveBands : array-like
-
-			list or array of octave band center frequencies
-
-		* butterOrd : int
-
-			butterworth filter order
-
-		* hammingTime : float or int
-
-			Hamming window length, in milliseconds relative to audio sample rate
-
-		Output
-		------
-		* octaveBandAudio : ndarray
-
-			Octave band filtered audio
-
-		* hz : float or int
-
-			Filtered audio sample rate
+		@param[out] hz [float or int] Filtered audio sample rate		
 		"""
 
 		### Achmadi here
@@ -247,32 +200,16 @@ class classSTI:
 		return octaveBandAudio
 
 	def octaveBandSpectra(self, filteredAudioBands, hz, fftResSpec=0.06):
-		"""
-		Calculate octave band power spectras
+		"""!
+		@brief Calculate octave band power spectras
 
-		Input
-		-----
-		* filteredAudioBands : array-like
+		@param[in] filteredAudioBands [array-like] Octave band filtered audio
+		@param[in] hz [float or int] Audio sample rate in hertz. Must be the same for clean and dirty audio
+		@param[in] fftResSpec [float or int] Desired FFT frequency resolution
+		@note default @b fftResSpec is 0.06
 
-			Octave band filtered audio
-
-		* hz : float or int
-
-			Audio sample rate in hertz. Must be the same for clean and dirty audio
-
-		* fftRes : float or int
-
-			Desired FFT frequency resolution
-
-		Output
-		------
-		* spectras : ndarray
-
-			Power spectra values
-
-		* fftfreqs : ndarray
-
-			Frequencies for FFT points
+		@param[out] spectras [ndarray] Power spectra values
+		@param[out] fftfreqs [ndarray] Frequencies for FFT points
 		"""
 		### Achmadi here
 		spectras = np.array([])
@@ -301,36 +238,17 @@ class classSTI:
 
 	def octaveBandCoherence(self, degrAudioBands, refAudioBands,
 							hz, fftResCoh=0.122):
-		"""
-		Calculate coherence between clean and degraded octave band audio
+		"""!
+		@brief Calculate coherence between clean and degraded octave band audio
 
-		Input
-		-----
-		* degrAudioBands : array-like
+		@param[in] degrAudioBands [array-like] Degraded octave band audio
+		@param[in] refAudioBands [array-like] Reference (clean) octave band audio
+		@param[in] hz [float or int] Audio sample rate. Must be common between clean and dirty audio
+		@param[in] fftResCoh [float or int] Desired FFT frequency resolution
+		@note default @b fftResCoh is 0.122
 
-			Degraded octave band audio
-
-		* refAudioBands : array-like
-
-			Reference (clean) octave band audio
-
-		* hz : float or int
-
-			Audio sample rate. Must be common between clean and dirty audio
-
-		* fftRes : float or int
-
-			Desired FFT frequency resolution
-
-		Output
-		------
-		* coherences : ndarray
-
-			Coherence values
-
-		* fftfreqs : ndarray
-
-			Frequencies for FFT points
+		@param[out] coherences [ndarray] Coherence values
+		@param[out] fftfreqs [ndarray] Frequencies for FFT points
 		"""
 		### Achmadi here
 		coherences = np.array([])
@@ -361,32 +279,17 @@ class classSTI:
 		return coherences, fftfreqs
 
 	def thirdOctaveRootSum(self, spectras, fftfreqs, minFreq=0.25, maxFreq=25.0):
-		"""
-		Calculates square root of sum of spectra over 1/3 octave bands
+		"""!
+		@brief Calculates square root of sum of spectra over 1/3 octave bands
 
-		Input
-		-----
-		* spectras : array-like
+		@param[in] spectras [array-like] Array or list of octave band spectras
+		@param[in] fftfreqs [array-like] Array or list of octave band FFT frequencies
+		@param[in] minFreq [float] Min frequency in 1/3 octave bands
+		@param[in] maxFreq [float] Max frequency in 1/3 octave bands
+		@note default @b minFreq is 0.25
+		@note default @b maxFreq is 25.0
 
-			Array or list of octave band spectras
-
-		* fftfreqs : array-like
-
-			Array or list of octave band FFT frequencies
-
-		* minFreq : float
-
-			Min frequency in 1/3 octave bands
-
-		* maxFreq : float
-
-			Max frequency in 1/3 octave bands
-
-		Output
-		------
-		* thirdOctaveRootSums : ndarray
-
-			Square root of spectra sums over 1/3 octave intervals
+		@param[out] thirdOctaveRootSums [ndarray] Square root of spectra sums over 1/3 octave intervals
 		"""
 		### Achmadi here
 		sums = np.array([])
@@ -429,32 +332,17 @@ class classSTI:
 		return thirdOctaveSums
 
 	def thirdOctaveRMS(self, spectras, fftfreqs, minFreq=0.25, maxFreq=25.0):
-		"""
-		Calculates RMS value of spectra over 1/3 octave bands
+		"""!
+		@brief Calculates RMS value of spectra over 1/3 octave bands
 
-		Input
-		-----
-		* spectras : array-like
+		@param[in] spectras [array-like] Array or list of octave band spectras
+		@param[in] fftfreqs [array-like] Array or list of octave band FFT frequencies
+		@param[in] minFreq [float] Min frequency in 1/3 octave bands
+		@param[in] maxFreq [float] Max frequency in 1/3 octave bands
+		@note default @b minFreq is 0.25
+		@note default @b maxFreq is 25.0
 
-			Array or list of octave band spectras
-
-		* fftfreqs : array-like
-
-			Array or list of octave band FFT frequencies
-
-		* minFreq : float
-
-			Min frequency in 1/3 octave bands
-
-		* maxFreq : float
-
-			Max frequency in 1/3 octave bands
-
-		Output
-		------
-		* thirdOctaveRMSValues : ndarray
-
-			RMS value of spectra over 1/3 octave intervals
+		@param[out] thirdOctaveRMSValues [ndarray] RMS value of spectra over 1/3 octave intervals
 		"""
 
 		### Achmadi here
@@ -499,30 +387,15 @@ class classSTI:
 		return thirdOctaveRMSValues
 
 	def sti(self, modulations, coherences, minCoherence=0.8):
-		"""
-		Calculate the speech transmission index from third octave modulation
-		indices. The indices are truncated after coherence between clean and dirty
-		audio falls below 'minCoherence' or 0.8, by default.
+		"""!
+		@brief Calculate the speech transmission index from third octave modulation	indices. The indices are truncated after coherence between clean and dirty audio falls below 'minCoherence' or 0.8, by default.
 
-		Input
-		-----
-		* modulations : array-like
+		@param[in] modulations [array-like]	Modulation indices spaced at 1/3 octaves within each octave band
+		@param[in] coherences [array-like] Coherence between clean and dirty octave band filtered audio
+		@param[in] minCoherence [float]	The minimum coherence to include a mod index in the STI computation
+		@note default @b minCoherence is 0.8
 
-			Modulation indices spaced at 1/3 octaves within each octave band
-
-		* coherences : array-like
-
-			Coherence between clean and dirty octave band filtered audio
-
-		* minCoherence : float
-
-			The minimum coherence to include a mod index in the STI computation
-
-		Output
-		------
-		* index : float
-
-			The speech transmission index (STI)
+		@param[out] index [float] The Speech Transmission Index (STI)
 		"""
 
 		# create masking array of zeroes
@@ -557,44 +430,24 @@ class classSTI:
 		return index
 
 	def stiFromAudio(self, reference, degraded, hz, calcref=False, downsample=None, name='unnamed', fftCohRes=0.122, fftSpecRes=0.06):
+		"""!
+		Calculate the speech transmission index (STI) from clean and dirty (ie: distorted) audio samples. The clean and dirty audio samples must have a common sample rate for successful use of this function.
+
+		@param[in] reference [array-like] Clean reference audio sample as an array of floating-point values
+		@param[in] degraded [array-like] Degraded audio sample as an array, or array of arrays for multiple	samples, of floating-point values
+		@param[in] hz [int]	Audio sample rate in hertz
+		@param[in] calcref [boolean] Calculate STI for reference signal alone
+		@param[in] downsample [int or None]	Downsampling integer factor
+		@param[in] name [string] Name of sample set, for output tracking in larger runs
+		@note default @b calcref is False
+		@note default @b downsample is None
+		@note default @b name is 'unnamed'
+		@note default @b fftCohRes is 0.122 (as @b fftResCoh)
+		@note default @b fftSpecRes is 0.06 (as @b fftResSpec)
+		
+		@param[out] sti [array-like or float] The calculated speech transmission index (STI) value(s)
 		"""
-		Calculate the speech transmission index (STI) from clean and dirty
-		(ie: distorted) audio samples. The clean and dirty audio samples must have
-		a common sample rate for successful use of this function.
-
-		Input
-		-----
-		* reference : array-like
-
-			Clean reference audio sample as an array of floating-point values
-
-		* degraded : array-like
-
-			Degraded audio sample as an array, or array of arrays for multiple
-			samples, of floating-point values
-
-		* hz : int
-
-			Audio sample rate in hertz
-
-		* calcref : boolean
-
-			Calculate STI for reference signal alone
-
-		* downsample : int or None
-
-			Downsampling integer factor
-
-		* name : string
-
-			Name of sample set, for output tracking in larger runs
-
-		Output
-		------
-		* sti : array-like or float
-
-			The calculated speech transmission index (STI) value(s)
-		"""
+		
 		### Achmadi here
 		thirdOctaveTemps = np.array([])
 		stiValues = np.array([])
@@ -684,26 +537,15 @@ class classSTI:
 		return stiValues
 
 	def readwav(self, path):
-		"""
-		Reads Microsoft WAV format audio files, scales integer sample values and
-		to [0,1]. Returns a tuple consisting of scaled WAV samples and sample rate
-		in hertz.
+		"""!
+		Reads Microsoft WAV format audio files, scales integer sample values and to [0,1]. Returns a tuple consisting of scaled WAV samples and sample rate	in hertz.
+		@note currently this method using scipy.io.wavfile.read() which limited on 16-bit data (PCM_16) and not capable read 24-bit data (PCM_24) 
 
-		Input
-		-----
-		* path : string
+		@param[in] path [string] Valid system path to file
 
-			Valid system path to file
-
-		Output
-		------
-		* audio : array-like
-
-			Array of scaled sampled
-
-		* rate : int
-
-			Audio sample rate in hertz
+		@param[out] audio [array-like] Array of scaled sampled
+		@param[out] rate [int] Audio sample rate in hertz
+		
 		"""
 		try:
 			wav = scywav.read(path)
