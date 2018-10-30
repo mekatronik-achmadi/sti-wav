@@ -10,9 +10,9 @@ import fnmatch
 from sti import classSTI
 
 def testSTI():
-	"""!
-	@brief main function to batch analyze multiple files using @b classSTI object
-	"""
+    """!
+    @brief main function to batch analyze multiple files using @b classSTI object
+    """
     
     csti = classSTI()
 
@@ -51,9 +51,10 @@ def testSTI():
                 txtfile.write("%i, %s, %s, error-wav \n" % (num,fwav,fwavref))
     
 if __name__ == '__main__':
-	"""!
-	@brief main script to run
-	"""
+    """!
+    @brief main script to run
+    """
+    
     testSTI()
         
    

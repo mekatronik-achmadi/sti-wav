@@ -16,9 +16,9 @@ __author__ = "Jonathan Polom <jmpolom@wayne.edu>"
 __version__ = "0.5"
 
 def testSTI():
-	"""!
-	@brief main function to test @b classSTI object
-	"""
+    """!
+    @brief main function to test @b classSTI object
+    """
     
     csti = classSTI()
     
@@ -40,9 +40,9 @@ def testSTI():
     return vsti
 
 if __name__ == '__main__':
-	"""!
-	@brief main script to run
-
-	@param[out] v_sti [array-like or float] The calculated speech transmission index (STI) value(s)
-	"""
+    """!
+    @brief main script to run
+    @param[out] v_sti [array-like or float] The calculated speech transmission index (STI) value(s)
+    """
+    
     v_sti = testSTI()

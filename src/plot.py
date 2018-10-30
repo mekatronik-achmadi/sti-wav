@@ -8,9 +8,10 @@ from sti import classSTI
 import matplotlib.pyplot as plt
 
 def plotSTI():
-	"""!
-	@brief main function to plot wav (degraded vs references) 
-	"""
+    """!
+    @brief main function to plot wav (degraded vs references) 
+    """
+    
     csti = classSTI()
     
     # read audio
@@ -28,8 +29,9 @@ def plotSTI():
     plt.show()
 
 if __name__ == '__main__':
-	"""!
-	@brief main script to run
-	"""
+    """!
+    @brief main script to run
+    """
+    
     plotSTI()
     
