@@ -10,14 +10,13 @@ Licensed under the GNU General Public License
 @version 0.5
 """
 
-import matplotlib.mlab as matmlab
-import numpy as np
-import numpy.ma as npma
-import scipy.io.wavfile as scywav
-import scipy.signal as scysig
+import matplotlib.mlab
+import numpy
+import numpy.ma
+import scipy.io.wavfile
+import scipy.signal
 import sys
-import datetime as dt
-import warnings as warns
+import warnings
 
 __author__ = "Jonathan Polom <jmpolom@wayne.edu>"
 __version__ = "0.5"
@@ -50,11 +49,11 @@ class classSTI:
 			maxFreq = float(maxFreq)
 
 			f = float(minFreq)
-			freqs = np.array([f])
+			freqs = numpy.array([f])
 
 			while f < maxFreq:
 				f = f * 10**0.1
-				freqs = np.append(freqs, f)
+				freqs = numpy.append(freqs, f)
 
 			return freqs
 
@@ -92,17 +91,17 @@ class classSTI:
 		"""
 
 		### Achmadi here
-		dsAudio = np.array([])
+		dsAudio = numpy.array([])
 
 		# calculate downsampled audio rate in hertz
 		downsampleFactor = int(downsampleFactor)        # factor must be integer
 		hz = int(hz / downsampleFactor)
 
 		for band in audio:
-			ds = scysig.decimate(band, downsampleFactor, ftype='fir')
+			ds = scipy.signal.decimate(band, downsampleFactor, ftype='fir')
 
 			try:
-				dsAudio = np.append(dsAudio, ds)
+				dsAudio = numpy.append(dsAudio, ds)
 			except:
 				dsAudio = ds
 
@@ -130,7 +129,7 @@ class classSTI:
 		"""
 
 		### Achmadi here
-		octaveBandAudio = np.array([])
+		octaveBandAudio = numpy.array([])
 
 		print(("Butterworth filter order: %.2f") % butterOrd)
 		print(("Hamming filter length:   %.2f ms") % hammingTime)
@@ -156,8 +155,8 @@ class classSTI:
 			sys.stdout.flush()
 
 			# filter the output at the octave band f
-			f1 = f / np.sqrt(2)
-			f2 = f * np.sqrt(2)
+			f1 = f / numpy.sqrt(2)
+			f2 = f * numpy.sqrt(2)
 
 			# for some odd reason the band-pass butterworth doesn't work right
 			# when the filter order is high (above 3). likely a SciPy issue?
@@ -168,32 +167,32 @@ class classSTI:
 			# their limitations but I think this is odd.
 			# the issue described here will be sent to their mailing list
 			if f < max(octaveBands):
-				with warns.catch_warnings():      # suppress the spurious warnings given
-					warns.simplefilter('ignore')  # under certain conditions
-					b1,a1 = scysig.butter(butterOrd, f1/nyquist, btype='high')
-					b2,a2 = scysig.butter(butterOrd, f2/nyquist, btype='low')
+				with warnings.catch_warnings():      # suppress the spurious warnings given
+					warnings.simplefilter('ignore')  # under certain conditions
+					b1,a1 = scipy.signal.butter(butterOrd, f1/nyquist, btype='high')
+					b2,a2 = scipy.signal.butter(butterOrd, f2/nyquist, btype='low')
 
-				filtOut = scysig.lfilter(b1, a1, audio)   # high-pass raw audio at f1
-				filtOut = scysig.lfilter(b2, a2, filtOut) # low-pass after high-pass at f1
+				filtOut = scipy.signal.lfilter(b1, a1, audio)   # high-pass raw audio at f1
+				filtOut = scipy.signal.lfilter(b2, a2, filtOut) # low-pass after high-pass at f1
 			else:
-				with warns.catch_warnings():
-					warns.simplefilter('ignore')
-					b1,a1 = scysig.butter(butterOrd, f/nyquist, btype='high')
-				filtOut = scysig.lfilter(b1, a1, audio)
+				with warnings.catch_warnings():
+					warnings.simplefilter('ignore')
+					b1,a1 = scipy.signal.butter(butterOrd, f/nyquist, btype='high')
+				filtOut = scipy.signal.lfilter(b1, a1, audio)
 
-			filtOut = np.array(filtOut)**2
+			filtOut = numpy.array(filtOut)**2
 			
 			### Achmadi here
-			# input need to be non-ngeative integer object
-			# ori: b = scysig.firwin(hammingLength, 25.0, window='hamming', nyq=nyquist)
+			# inumpyut need to be non-ngeative integer object
+			# ori: b = scipy.signal.firwin(hammingLength, 25.0, window='hamming', nyq=nyquist)
 			
-			b = scysig.firwin(int(hammingLength), 25.0, window='hamming', nyq=int(nyquist))
-			filtOut = scysig.lfilter(b, 1, filtOut)
+			b = scipy.signal.firwin(int(hammingLength), 25.0, window='hamming', nyq=int(nyquist))
+			filtOut = scipy.signal.lfilter(b, 1, filtOut)
 			filtOut = filtOut * -1.0
 
 			# stack-up octave band filtered audio
 			try:
-				octaveBandAudio = np.vstack((octaveBandAudio, filtOut))
+				octaveBandAudio = numpy.vstack((octaveBandAudio, filtOut))
 			except:
 				octaveBandAudio = filtOut
 
@@ -212,8 +211,8 @@ class classSTI:
 		@param[out] fftfreqs [ndarray] Frequencies for FFT points
 		"""
 		### Achmadi here
-		spectras = np.array([])
-		fftfreqs = np.array([])
+		spectras = numpy.array([])
+		fftfreqs = numpy.array([])
 
 		# FFT window size for PSD calculation: 32768 for ~0.06 Hz res at 2 kHz
 		psdWindow = self.fftWindowSize(fftResSpec, hz)
@@ -222,14 +221,14 @@ class classSTI:
 		print(("(FFT length: %.2f samples)") % psdWindow)
 
 		for band in filteredAudioBands:
-			spectra, freqs = matmlab.psd(band, NFFT=psdWindow, Fs=hz)
-			spectra = np.reshape(spectra, len(freqs))  # change to row vector
+			spectra, freqs = matplotlib.mlab.psd(band, NFFT=psdWindow, Fs=hz)
+			spectra = numpy.reshape(spectra, len(freqs))  # change to row vector
 			spectra = spectra / max(spectra)        # scale to [0,1]
 
 			# stack-up octave band spectras
 			try:
-				spectras = np.vstack((spectras, spectra))
-				fftfreqs = np.vstack((fftfreqs, freqs))
+				spectras = numpy.vstack((spectras, spectra))
+				fftfreqs = numpy.vstack((fftfreqs, freqs))
 			except:
 				spectras = spectra
 				fftfreqs = freqs
@@ -251,8 +250,8 @@ class classSTI:
 		@param[out] fftfreqs [ndarray] Frequencies for FFT points
 		"""
 		### Achmadi here
-		coherences = np.array([])
-		fftfreqs = np.array([])
+		coherences = numpy.array([])
+		fftfreqs = numpy.array([])
 
 		# FFT window size for PSD calculation: 32768 for ~0.06 Hz res at 2 kHz
 		# Beware that 'cohere' isn't as forgiving as 'psd' with FFT lengths
@@ -263,15 +262,15 @@ class classSTI:
 		print(("(FFT length: %.2f samples)") % psdWindow)
 
 		for i,band in enumerate(degrAudioBands):
-			with warns.catch_warnings():      # catch and ignore spurious warnings
-				warns.simplefilter('ignore')  # due to some irrelevant divide by 0's
-				coherence, freqs = matmlab.cohere(band, refAudioBands[i],
+			with warnings.catch_warnings():      # catch and ignore spurious warnings
+				warnings.simplefilter('ignore')  # due to some irrelevant divide by 0's
+				coherence, freqs = matplotlib.mlab.cohere(band, refAudioBands[i],
 										  NFFT=psdWindow, Fs=hz)
 
 			# stack-up octave band spectras
 			try:
-				coherences = np.vstack((coherences, coherence))
-				fftfreqs = np.vstack((fftfreqs, freqs))
+				coherences = numpy.vstack((coherences, coherence))
+				fftfreqs = numpy.vstack((fftfreqs, freqs))
 			except:
 				coherences = coherence
 				fftfreqs = freqs
@@ -292,8 +291,8 @@ class classSTI:
 		@param[out] thirdOctaveRootSums [ndarray] Square root of spectra sums over 1/3 octave intervals
 		"""
 		### Achmadi here
-		sums = np.array([])
-		thirdOctaveSums = np.array([])
+		sums = numpy.array([])
+		thirdOctaveSums = numpy.array([])
 
 		print("Calculating 1/3 octave square-rooted sums from")
 		print(("%.2f to %.2f Hz") % (minFreq,maxFreq))
@@ -306,23 +305,23 @@ class classSTI:
 
 			# calculate the third octave sums
 			for f13 in thirdOctaveBands:
-				f131 = f13 / np.power(2, 1.0/6.0) # band start
-				f132 = f13 * np.power(2, 1.0/6.0) # band end
+				f131 = f13 / numpy.power(2, 1.0/6.0) # band start
+				f132 = f13 * numpy.power(2, 1.0/6.0) # band end
 
-				li = np.searchsorted(freqs, f131)
-				ui = np.searchsorted(freqs, f132) + 1
+				li = numpy.searchsorted(freqs, f131)
+				ui = numpy.searchsorted(freqs, f132) + 1
 
-				s = np.sum(spectra[li:ui]) # sum the spectral components in band
-				s = np.sqrt(s)             # take square root of summed components
+				s = numpy.sum(spectra[li:ui]) # sum the spectral components in band
+				s = numpy.sqrt(s)             # take square root of summed components
 
 				try:
-					sums = np.append(sums, s)
+					sums = numpy.append(sums, s)
 				except:
-					sums = np.array([s])
+					sums = numpy.array([s])
 
 			# stack-up third octave modulation transfer functions
 			try:
-				thirdOctaveSums = np.vstack((thirdOctaveSums, sums))
+				thirdOctaveSums = numpy.vstack((thirdOctaveSums, sums))
 			except:
 				thirdOctaveSums = sums
 
@@ -346,8 +345,8 @@ class classSTI:
 		"""
 
 		### Achmadi here
-		sums = np.array([])
-		thirdOctaveRMSValues = np.array([])
+		sums = numpy.array([])
+		thirdOctaveRMSValues = numpy.array([])
 
 		print("Calculating 1/3 octave RMS values from")
 		print(("%.2f to %.2f Hz") % (minFreq,maxFreq))
@@ -360,24 +359,24 @@ class classSTI:
 
 			# calculate the third octave sums
 			for f13 in thirdOctaveBands:
-				f131 = f13 / np.power(2, 1.0/6.0) # band start
-				f132 = f13 * np.power(2, 1.0/6.0) # band end
+				f131 = f13 / numpy.power(2, 1.0/6.0) # band start
+				f132 = f13 * numpy.power(2, 1.0/6.0) # band end
 
-				li = np.searchsorted(freqs, f131)
-				ui = np.searchsorted(freqs, f132) + 1
+				li = numpy.searchsorted(freqs, f131)
+				ui = numpy.searchsorted(freqs, f132) + 1
 
-				s = np.sum(spectra[li:ui]**2)  # sum the spectral components in band
+				s = numpy.sum(spectra[li:ui]**2)  # sum the spectral components in band
 				s = s / len(spectra[li:ui]) # divide by length of sum
-				s = np.sqrt(s)                 # square root
+				s = numpy.sqrt(s)                 # square root
 
 				try:
-					sums = np.append(sums, s)
+					sums = numpy.append(sums, s)
 				except:
-					sums = np.array([s])
+					sums = numpy.array([s])
 
 			# stack-up third octave modulation transfer functions
 			try:
-				thirdOctaveRMSValues = np.vstack((thirdOctaveRMSValues, sums))
+				thirdOctaveRMSValues = numpy.vstack((thirdOctaveRMSValues, sums))
 			except:
 				thirdOctaveRMSValues = sums
 
@@ -399,20 +398,20 @@ class classSTI:
 		"""
 
 		# create masking array of zeroes
-		snrMask = np.zeros(modulations.shape, dtype=int)
+		snrMask = numpy.zeros(modulations.shape, dtype=int)
 
 		# sort through coherence array and mask corresponding SNRs where coherence
 		# values fall below 'minCoherence' (0.8 in most cases and by default)
 		for i,band in enumerate(coherences):
-			lessThanMin = np.nonzero(band < minCoherence)[0]
+			lessThanMin = numpy.nonzero(band < minCoherence)[0]
 			if len(lessThanMin) >= 1:
 				discardAfter = min(lessThanMin)
-				snrMask[i][discardAfter:] = np.ones((len(snrMask[i][discardAfter:])))
+				snrMask[i][discardAfter:] = numpy.ones((len(snrMask[i][discardAfter:])))
 
-		modulations = np.clip(modulations, 0, 0.99)      # clip to [0, 0.99] (max: ~1)
-		snr = 10*np.log10(modulations/(1 - modulations)) # estimate SNR
-		snr = np.clip(snr, -15, 15)                      # clip to [-15,15]
-		snr = npma.masked_array(snr, mask=snrMask)         # exclude values from sum
+		modulations = numpy.clip(modulations, 0, 0.99)      # clip to [0, 0.99] (max: ~1)
+		snr = 10*numpy.log10(modulations/(1 - modulations)) # estimate SNR
+		snr = numpy.clip(snr, -15, 15)                      # clip to [-15,15]
+		snr = numpy.ma.masked_array(snr, mask=snrMask)         # exclude values from sum
 		snrCounts = (snr / snr).sum(axis=1)           # count SNRs
 		snrCounts = snrCounts.data                    # remove masking
 		octaveBandSNR = snr.sum(axis=1) / snrCounts   # calc average SNR
@@ -449,8 +448,8 @@ class classSTI:
 		"""
 		
 		### Achmadi here
-		thirdOctaveTemps = np.array([])
-		stiValues = np.array([])
+		thirdOctaveTemps = numpy.array([])
+		stiValues = numpy.array([])
 
 		# put single sample degraded array into another array so the loop works
 		if type(degraded) is not type([]):
@@ -530,7 +529,7 @@ class classSTI:
 			except:
 				stiValues = [sampleSTI]
 
-		# unpack single value
+		# unumpyack single value
 		if len(stiValues) == 1:
 			stiValues = stiValues[0]
 
@@ -548,7 +547,7 @@ class classSTI:
 		
 		"""
 		try:
-			wav = scywav.read(path)
+			wav = scipy.io.wavfile.read(path)
 			
 		except:        
 			print("error read wav file %s \n\n" % path)
@@ -556,7 +555,7 @@ class classSTI:
 			
 		status = 0
 		rate = wav[0]
-		audio = np.array(wav[1])
+		audio = numpy.array(wav[1])
 
 		scale = float(max(audio))
 		audio = audio / scale
